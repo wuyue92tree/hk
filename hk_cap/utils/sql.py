@@ -18,6 +18,7 @@ class Http(Base):
 	method = Column(String(20))
 	platform = Column(String(20))
 	browser = Column(String(20))
+	cookie = Column(String(1000))
 	host = Column(String(100))
 	uri = Column(String(1000))
 	url = Column(String(200))

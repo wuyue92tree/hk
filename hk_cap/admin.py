@@ -6,7 +6,7 @@ from .models import Http
 
 
 class HttpAdmin(admin.ModelAdmin):
-	list_display = ('sip', 'dip', 'sport', 'dport', 'method', 'platform', 'browser', 'host', 'time')
+	list_display = ('sip', 'dip', 'sport', 'dport', 'method', 'platform', 'browser', 'host', 'time',)
 	search_fields = ('method',)
 	ordering = ('-time',)
 

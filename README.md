@@ -1,4 +1,4 @@
-# django_demo
+# HK
 ####开始吧～
 #####第一步（创建数据库）：
 >python manage.py makemigrations

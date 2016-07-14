@@ -37,7 +37,11 @@ class Capture(object):
 			# print 'Timestamp: ', str(datetime.datetime.utcfromtimestamp(timestamp))
 
 			eth = dpkt.ethernet.Ethernet(buf)
-			list.append(eth)
+			try:
+				http = dpkt.http.Request(eth.data.data.data)
+			except:
+				continue
+			list.append(http)
 		return list
 
 	def print_packets(self):
@@ -71,25 +75,39 @@ class Capture(object):
 			if tcp.dport == 80 and len(tcp.data) > 0:
 				try:
 					http = dpkt.http.Request(tcp.data)
-					user_agent = http.headers['user-agent']
-					cmd = 'node ./node/ua.js "%s"' % str(user_agent)
-					screen_show = os.popen(cmd).read()
-					jsonp = self.html_parser.jsonp_parser(screen_show)
-					ua = json.loads(jsonp)
-					if ua:
-						platform = ua.get('platform').get('name')
-						browser = ua.get('browser').get('full')
-					else:
-						platform = None
-						browser = None
+					# print http
+					try:
+						user_agent = http.headers['user-agent']
+						cmd = 'node ./node/ua.js "%s"' % str(user_agent)
+						screen_show = os.popen(cmd).read()
+						jsonp = self.html_parser.jsonp_parser(screen_show)
+						ua = json.loads(jsonp)
+						if ua:
+							platform = ua.get('platform').get('name')
+							browser = ua.get('browser').get('full')
+						else:
+							platform = None
+							browser = None
+					except:
+						print "No user-agent found!"
+						continue
+					try:
+						cookie = http.headers['cookie']
+					except:
+						print "No cookie found!"
+						continue
+
+					host = http.headers['host']
+					uri = http.uri
+
 					# print ua.get('platform').get('name'), ua.get('browser').get('full')
 
-					item = Http(sip=self.ip_to_str(ip.src), dip=self.ip_to_str(ip.dst),sport=tcp.sport, dport=tcp.dport, method=http.method, platform=platform, browser=browser, host=http.headers['host'], uri=http.uri)
+					item = Http(sip=self.ip_to_str(ip.src), dip=self.ip_to_str(ip.dst), sport=tcp.sport, dport=tcp.dport, method=http.method, platform=platform, browser=browser, cookie=cookie, host=host, uri=uri, url='http://'+host+uri)
 					self.sql.session.merge(item)
 					self.sql.session.commit()
 
 				except dpkt.UnpackError:
-					# print "Non HTTP Packet not supported\n"
+					print "None HTTP Packet!"
 					continue
 
 if __name__ == "__main__":
