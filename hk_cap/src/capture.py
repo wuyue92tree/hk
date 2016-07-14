@@ -6,6 +6,9 @@ import os
 import dpkt
 import socket
 import pcap
+import time
+import logging
+import logging.handlers
 from optparse import OptionParser
 
 import sys
@@ -14,6 +17,17 @@ sys.path.append('../..')
 
 from hk_cap.utils.sql import *
 from hk_cap.utils.html_parser import *
+
+LOG_FILE = '../log/log_%s.txt' % time.strftime('%Y-%m-%d', time.localtime(time.time()))
+handler = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1024 * 1024, backupCount=5)  # 实例化handler
+fmt = '%(asctime)s - %(filename)s:%(lineno)s - %(name)s - %(message)s'
+
+formatter = logging.Formatter(fmt)  # 实例化formatter
+handler.setFormatter(formatter)  # 为handler添加formatter
+
+logger = logging.getLogger('log_%s' % time.strftime('%Y-%m-%d', time.localtime(time.time())))  # 获取名为tst的logger
+logger.addHandler(handler)  # 为logger添加handler
+logger.setLevel(logging.DEBUG)
 
 
 class Capture(object):
@@ -89,12 +103,12 @@ class Capture(object):
 							platform = None
 							browser = None
 					except:
-						print "No user-agent found!"
+						logger.info("No user-agent found!")
 						continue
 					try:
 						cookie = http.headers['cookie']
 					except:
-						print "No cookie found!"
+						logger.info("No cookie found!")
 						continue
 
 					host = http.headers['host']
@@ -107,7 +121,7 @@ class Capture(object):
 					self.sql.session.commit()
 
 				except dpkt.UnpackError:
-					print "None HTTP Packet!"
+					logger.info("None HTTP Packet!")
 					continue
 
 if __name__ == "__main__":
